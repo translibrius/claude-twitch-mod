@@ -2,7 +2,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import { emotify, padFor } from './emotify'
 
-const PACK = 'https://github.com/translibrius/claude-twitch-emotes/releases/latest/download'
+const PACK = 'https://github.com/translibrius/claude-twitch-mod/releases/latest/download'
 const MARK = 'twitch-emotes'
 const PROMPT_EMOTES = 150
 
@@ -31,7 +31,7 @@ end
 `
 
 const hookLine = (dir: string, config: string) =>
-  `-- ${MARK}: Twitch emotes in Claude Code (github.com/translibrius/claude-twitch-emotes). Delete these two lines to undo.\n` +
+  `-- ${MARK}: Twitch emotes in Claude Code (github.com/translibrius/claude-twitch-mod). Delete these two lines to undo.\n` +
   `do local ok, te = pcall(dofile, '${dir}/wezterm.lua'); if ok then te(${config}) end end\n`
 
 // Module variables die on reload; everything here is re-read from disk, env or the store.

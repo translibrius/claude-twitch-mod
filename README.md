@@ -1,4 +1,4 @@
-# claude-twitch-emotes
+# claude-twitch-mod
 
 Real Twitch emotes in [Claude Code](https://claude.com/claude-code). When Claude writes `KEKW`, `Pog` or `monkaS`, your terminal draws the actual emote, inline, in the reply.
 
@@ -11,7 +11,7 @@ Real Twitch emotes in [Claude Code](https://claude.com/claude-code). When Claude
 In Claude Code, running inside [WezTerm](https://wezterm.org):
 
 ```
-/plugin install twitch-emotes --marketplace translibrius/claude-twitch-emotes
+/plugin install twitch-emotes --marketplace translibrius/claude-twitch-mod
 ```
 
 Then, once:

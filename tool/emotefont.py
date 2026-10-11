@@ -35,7 +35,7 @@ PX = 64  # strike size. Drawn ~22px tall at 13pt, so 64 still covers a 2x HiDPI 
 ASC = round(PX * 0.79)
 DESC = PX - ASC
 UPM = 1024
-UA = {"User-Agent": "Mozilla/5.0 emotefont (+https://github.com/translibrius/claude-twitch-emotes)"}
+UA = {"User-Agent": "Mozilla/5.0 emotefont (+https://github.com/translibrius/claude-twitch-mod)"}
 
 # Names that pass the dictionary check but still show up in caps in normal dev talk
 STOP = set("""OK NO YES NOT MUST TODO NOTE FIXME WARNING ERROR DONE FAIL PASS TRUE FALSE NULL NONE INFO
@@ -287,7 +287,7 @@ def write_outputs(data, registry, cfg):
     # Registry order is core first, then by popularity: the mod tells the model about the head of it
     (data / "emotes.json").write_text(json.dumps({"cells": cells, "glyphs": glyphs}, ensure_ascii=False), encoding="utf-8")
     (data / "registry.json").write_text(json.dumps(registry, indent=0), encoding="utf-8")
-    print(f"{len(glyphs)} emotes, {out.stat().st_size / 1048576:.1f} MiB -> {out}")
+    print(f"{len(glyphs)} emotes in the font ({out.stat().st_size / 1048576:.1f} MiB)")
 
 
 def upsert(registry, name, src, frame, override):
