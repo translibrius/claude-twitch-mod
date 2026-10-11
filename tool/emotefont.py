@@ -334,6 +334,8 @@ def main():
             sys.exit(f"no emote called exactly {args.name!r} on 7TV (names are case sensitive); pass a URL")
         if not upsert(registry, args.name, src, frame, override=True):
             print(f"{args.name} was already in, source updated")
+        else:
+            print(f"added {args.name}")
         write_outputs(data, registry, cfg)
         return
 

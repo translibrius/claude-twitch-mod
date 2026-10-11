@@ -147,12 +147,12 @@ export const register: Register = on => {
     await $.fs.write(`${d}/wezterm.lua`, shim(d))
     if ((await loadPack($)) === undefined) {
       const failed = await downloadPack($)
-      if (failed !== undefined) $.ui.log(`twitch-emotes: ${failed}`)
+      if (failed !== undefined) $.ui.log(failed)
       else await loadPack($)
     }
     if ((await $.env.get('TERM_PROGRAM')) === 'WezTerm') {
       const cfg = await wezConfig($)
-      if (cfg !== undefined && !cfg.text.includes(MARK)) $.ui.log('twitch-emotes: one step left, run /emotes setup (adds two lines to your wezterm config)')
+      if (cfg !== undefined && !cfg.text.includes(MARK)) $.ui.log('one step left: run /emotes setup (adds two lines to your wezterm config)')
     }
     return next(e)
   })
