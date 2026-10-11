@@ -78,3 +78,22 @@ test('tells the model which emotes exist, only where they draw', async ($, on) =
   expect(sections.map(s => s.id)).toEqual(['intro', 'twitch-emotes:emotes'])
   expect(sections[1]!.text).toContain('KEKW Pog Pepega')
 })
+
+test('the model can add an emote, and junk names never reach the command line', async ($, on) => {
+  mock.env(on, { TERM_PROGRAM: 'WezTerm', HOME: '/home/baj' })
+  mock.store(on)
+  on('fs.read', () => ({ value: packFile }))
+  const ran: string[][] = []
+  on('process.run', (_, e) => {
+    ran.push([...e.argv])
+    return { value: { exitCode: 0, stdout: 'added ppL', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+  })
+  const tool = 'mcp__twitch-emotes__add_emote'
+  expect((await $.tool.call({ tool, name: 'ppL' })).result).toBe('added ppL')
+  expect(ran.at(-1)!.slice(-2)).toEqual(['add', 'ppL'])
+  const before = ran.length
+  for (const bad of [{ name: '--dir' }, { name: 'a b' }, { name: '@3' }, { name: 'ppL', url: 'file:///etc/passwd' }, { name: 'ppL', url: 'https://x --dir /' }]) {
+    expect((await $.tool.call({ tool, ...bad })).isError).toBe(true)
+  }
+  expect(ran.length).toBe(before)
+})

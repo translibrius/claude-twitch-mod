@@ -143,6 +143,21 @@ export const register: Register = on => {
       description: 'Twitch emotes: setup, on/off, list, add NAME [URL], prompt N',
       argumentHint: '[setup|on|off|list|add NAME|prompt N|any-terminal on|off]',
     })
+    // Not deferred: a tool the model has to go searching for is a tool it never calls
+    await $.tool.register({
+      name: 'add_emote',
+      description:
+        'Adds a Twitch emote to the terminal emote font, so that its name written as a standalone word draws as the emote from then on. ' +
+        'Use it when the user asks for an emote the font lacks, or to add one you are about to use. ' +
+        '`name` is looked up on 7TV and must match exactly, case included (catJAM, not catjam). ' +
+        'Pass `url` (png, gif or webp) to use a specific image under that name instead.',
+      inputSchema: {
+        type: 'object',
+        properties: { name: { type: 'string' }, url: { type: 'string' } },
+        required: ['name'],
+      },
+      isDeferred: false,
+    })
     const d = await dataDir($)
     await $.fs.write(`${d}/wezterm.lua`, shim(d))
     if ((await loadPack($)) === undefined) {
@@ -155,6 +170,18 @@ export const register: Register = on => {
       if (cfg !== undefined && !cfg.text.includes(MARK)) $.ui.log('one step left: run /emotes setup (adds two lines to your wezterm config)')
     }
     return next(e)
+  })
+
+  on('tool.call', { tool: 'mcp__twitch-emotes__add_emote' }, async ($, e) => {
+    const { name, url } = e as unknown as { name?: unknown; url?: unknown }
+    // These land in an argv: keep anything that could read as a flag or a second argument out
+    if (typeof name !== 'string' || name === '' || name.length > 40 || name.startsWith('-') || name.startsWith('@') || name.split(/\s/).length > 1) {
+      return { result: 'name must be one word, the emote name exactly as spelled on 7TV', isError: true }
+    }
+    if (url !== undefined && (typeof url !== 'string' || !(url.startsWith('https://') || url.startsWith('http://')) || url.split(/\s/).length > 1)) {
+      return { result: 'url must be a single http(s) URL', isError: true }
+    }
+    return { result: await addEmote($, url === undefined ? [name] : [name, url]) }
   })
 
   on('command.run', { command: 'emotes' }, async ($, e) => {
@@ -205,6 +232,7 @@ export const register: Register = on => {
       'spelled and cased exactly, outside of code, shows as the emote. Where your instructions or the ' +
       'conversation call for Twitch-chat tone you can use them as a chatter would (one at the end of a ' +
       'line, not a wall). Do not start using them in conversations that are not already in that tone. ' +
+      'An emote that is not in the font can be added with the add_emote tool, by its exact 7TV name. ' +
       `The most used ones: ${names.join(' ')}`
     return { sections: [...composed.sections, { id: 'twitch-emotes:emotes', text, scope: 'session' }] }
   })

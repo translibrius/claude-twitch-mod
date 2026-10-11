@@ -37,6 +37,8 @@ Now tell Claude to talk like Twitch chat, or just ask it to say `Pepega Clap`.
 | `/emotes list` | Every emote name the font has |
 | `/emotes add NAME` | Add an emote by its exact 7TV name. Shows up live, no restart |
 | `/emotes add NAME URL` | Add any image (png, gif, webp) under a name you pick |
+
+Claude can add emotes by itself too: ask it for one the font lacks ("add peepoGiggles") and it calls the mod's `add_emote` tool.
 | `/emotes prompt N` | How many emote names Claude is told about (default 150, 0 for none) |
 | `/emotes any-terminal on` | Swap emotes outside WezTerm too (see below) |
 
