@@ -1,10 +1,14 @@
 # claude-twitch-mod
 
+![Twitch emotes in Claude Code: before and after](assets/hero.png)
+
 Real Twitch emotes in [Claude Code](https://claude.com/claude-code). When Claude writes `KEKW`, `Pog` or `monkaS`, your terminal draws the actual emote, inline, in the reply.
 
-![Claude Code replying with rendered Twitch emotes](assets/demo.png)
+![A Claude Code session replying with emotes, then toggling them off and on](assets/demo.gif)
 
 745 emotes out of the box: the classics, the most used 7TV and FFZ emotes, and the Twitch globals. Add any other one by name in a few seconds.
+
+![Every emote in the pack](assets/wall.png)
 
 ## Install
 
