@@ -1,0 +1,17 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  font:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      # Curated list only: proves the builder still turns emotes.txt into a loadable color font
+      - run: uv run tool/emotefont.py --dir pack build --top 0 --ffz 0
+      - run: uv run --with fonttools python -c "from fontTools.ttLib import TTFont; import glob, json; f = TTFont(glob.glob('pack/font-*/TwitchEmotes.ttf')[0]); n = len(json.load(open('pack/emotes.json', encoding='utf-8'))['glyphs']); assert 'CBDT' in f and n > 50, n; print(n, 'emotes')"

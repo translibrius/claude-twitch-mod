@@ -1,0 +1,6 @@
+{
+  "name": "claude-twitch-emotes",
+  "owner": { "name": "translibrius" },
+  "description": "Twitch emotes for Claude Code",
+  "plugins": [{ "name": "twitch-emotes", "source": "./", "description": "Real Twitch emotes in Claude Code, drawn inline in your terminal" }]
+}

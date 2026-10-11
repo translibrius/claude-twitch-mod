@@ -1,0 +1,10 @@
+{
+  "name": "twitch-emotes",
+  "version": "1.0.0",
+  "description": "Real Twitch emotes in Claude Code: KEKW, Pog, monkaS and ~750 more drawn inline in your terminal",
+  "author": { "name": "translibrius", "url": "https://github.com/translibrius" },
+  "homepage": "https://github.com/translibrius/claude-twitch-emotes",
+  "repository": "https://github.com/translibrius/claude-twitch-emotes",
+  "license": "MIT",
+  "keywords": ["twitch", "emotes", "7tv", "bttv", "ffz", "wezterm", "terminal"]
+}
