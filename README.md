@@ -12,7 +12,7 @@ Real Twitch emotes in [Claude Code](https://claude.com/claude-code). When Claude
 
 ## Install
 
-In Claude Code, running inside [WezTerm](https://wezterm.org):
+In Claude Code, running inside [WezTerm](https://wezterm.org) or [Zed](https://zed.dev)'s terminal:
 
 ```
 /plugin install twitch-emotes --marketplace translibrius/claude-twitch-mod
@@ -26,13 +26,15 @@ Then, once:
 
 That's it. The first session downloads the emote font (5 MB) to `~/.twitch-emotes`. `/emotes setup` adds two lines to your wezterm config so it uses that font as a fallback, and keeps a backup next to it. WezTerm reloads by itself, no restart.
 
+**Zed**: the first session inside Zed's terminal builds a Zed copy of the font (about 15 s, needs [uv](https://docs.astral.sh/uv) or Python with `fonttools pillow`) and installs it for your user. `/emotes setup` adds `"terminal": { "font_fallbacks": ["Twitch Emotes COLR"] }` to Zed's settings. Restart Zed once and they draw. Without Claude Code: `uv run tool/zedfont.py --setup`.
+
 Now tell Claude to talk like Twitch chat, or just ask it to say `Pepega Clap`.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `/emotes setup` | Hook the font into your wezterm config (once) |
+| `/emotes setup` | Hook the font into your wezterm config, or Zed's settings when run in Zed (once) |
 | `/emotes` | Toggle rendering on and off |
 | `/emotes list` | Every emote name the font has |
 | `/emotes add NAME` | Add an emote by its exact 7TV name. Shows up live, no restart |
@@ -57,7 +59,7 @@ Terminals can't reliably show inline images from inside a TUI (and on Windows, C
 
 - **Static.** Animated emotes show one frame. Fonts don't animate.
 - **One text row tall**, three cells wide. Chat-sized, not billboard-sized.
-- **WezTerm only, for now.** It is the only terminal this is tested in. Others may work with the font set as a fallback and `/emotes any-terminal on`; reports welcome.
+- **WezTerm and Zed (Windows).** Zed only draws COLR color glyphs, so it gets its own build: each emote as solid-color layers, one square per device pixel, sized to fill one terminal row. That build is tied to Zed's terminal font size, line height and display scale; the mod rebuilds it when those change (restart Zed after). Zed on Linux/macOS gets the same build, untested. Other terminals may work with the font set as a fallback and `/emotes any-terminal on`; reports welcome.
 - An emote named like an ordinary word would hijack that word, so the bulk import skips names that are plain English (`Sure`, `WHAT`) and all-lowercase ones. Add one back with `/emotes add`, or block one by putting its name in `~/.twitch-emotes/block.txt`.
 
 ## Build your own pack

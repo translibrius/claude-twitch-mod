@@ -69,6 +69,27 @@ for (const [term, want] of [['WezTerm', `it works ${g('Pog')}`], ['vscode', 'it 
   })
 }
 
+for (const [built, want] of [[true, `it works ${g('Pog')}`], [false, 'it works Pog']] as const) {
+  test(`Zed draws ${built ? 'glyphs once its font is built' : 'plain names until its font is built'}`, async ($, on) => {
+    mock.env(on, { TERM_PROGRAM: 'zed', HOME: '/home/baj' })
+    mock.store(on)
+    on('fs.read', (_, e) => {
+      const path = e.path.replaceAll('\\', '/')
+      if (path.endsWith('/.twitch-emotes/emotes.json')) return { value: packFile }
+      if (path.endsWith('/.twitch-emotes/zed.json') && built) return { value: '{}' }
+      throw new Error(`no ${e.path}`)
+    })
+    let drawn: string | undefined
+    on('ui.render', { component: 'AssistantMessage' }, ($$, e) => {
+      drawn = e.props.text
+      const { Text } = $$.ui.resolve(e)
+      return <Text>{e.props.text}</Text>
+    })
+    await $.ui.mount({ plugin: 'twitch-emotes', surface: 'terminal', component: 'AssistantMessage', props: reply })
+    expect(drawn).toBe(want)
+  })
+}
+
 test('tells the model which emotes exist, only where they draw', async ($, on) => {
   mock.env(on, { TERM_PROGRAM: 'WezTerm', HOME: '/home/baj' })
   mock.store(on)

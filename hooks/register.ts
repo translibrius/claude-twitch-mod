@@ -57,9 +57,19 @@ async function loadPack($: EngineInterface): Promise<Pack | undefined> {
   return pack
 }
 
+async function zedReady($: EngineInterface): Promise<boolean> {
+  try {
+    await $.fs.read(`${await dataDir($)}/zed.json`)
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function enabled($: EngineInterface): Promise<boolean> {
-  // Only wezterm is known to scale and overflow the glyphs right; elsewhere it could be tofu
-  hasFont ??= (await $.env.get('TERM_PROGRAM')) === 'WezTerm' || (await $.store.get('anyTerminal')) === true
+  // wezterm draws the CBDT font, Zed its own COLR build (tool/zedfont.py). Elsewhere it could be tofu
+  const term = await $.env.get('TERM_PROGRAM')
+  hasFont ??= term === 'WezTerm' || (term === 'zed' && (await zedReady($))) || (await $.store.get('anyTerminal')) === true
   isOn ??= ((await $.store.get('isOn')) ?? true) === true
   return hasFont && isOn
 }
@@ -95,6 +105,7 @@ async function wezConfig($: EngineInterface): Promise<{ path: string; text: stri
 }
 
 async function setup($: EngineInterface): Promise<string> {
+  if ((await $.env.get('TERM_PROGRAM')) === 'zed') return await zedSync($, true)
   const d = await dataDir($)
   const manual = `Add this to your wezterm config, just before it returns:\n\n${hookLine(d, 'config')}`
   const cfg = await wezConfig($)
@@ -112,28 +123,40 @@ async function setup($: EngineInterface): Promise<string> {
   return `Added two lines to ${real} (backup beside it, .twitch-emotes.bak). wezterm reloads by itself: try saying KEKW.`
 }
 
-async function addEmote($: EngineInterface, args: readonly string[]): Promise<string> {
+/** Runs tool/<script> with whichever Python has fonttools. */
+async function runTool($: EngineInterface, script: string, args: readonly string[]): Promise<{ ok: boolean; said: string }> {
   const d = await dataDir($)
-  const tool = `${$.plugin.root}/tool/emotefont.py`.replaceAll('\\', '/')
-  const attempts = [['uv', 'run', '--quiet', '--script'], ['python'], ['python3']]
+  const tool = `${$.plugin.root}/tool/${script}`.replaceAll('\\', '/')
   let said = ''
-  for (const runner of attempts) {
+  for (const runner of [['uv', 'run', '--quiet', '--script'], ['python'], ['python3']]) {
     try {
-      const got = await $.process.run([...runner, tool, 'add', ...args], { timeoutMs: 120_000, env: { TWITCH_EMOTES_DIR: d } })
+      const got = await $.process.run([...runner, tool, ...args], { timeoutMs: 300_000, env: { TWITCH_EMOTES_DIR: d } })
       said = (got.stdout + got.stderr).trim()
-      if (got.exitCode !== 0) {
-        // Missing imports: maybe the next runner has them. Anything else is the real answer
-        if (said.includes('needs fonttools')) continue
-        return said
-      }
-      await loadPack($)
-      $.ui.invalidate('ui.render')
-      return said
+      // Missing imports: maybe the next runner has them. Anything else is the real answer
+      if (got.exitCode !== 0 && said.includes('needs fonttools')) continue
+      return { ok: got.exitCode === 0, said }
     } catch {
       // that runner is not installed
     }
   }
-  return said || 'Adding emotes builds the font locally, which needs Python: install uv (https://docs.astral.sh/uv), or Python with `pip install fonttools pillow`.'
+  return { ok: false, said: said || 'Building the font needs Python: install uv (https://docs.astral.sh/uv), or Python with `pip install fonttools pillow`.' }
+}
+
+async function addEmote($: EngineInterface, args: readonly string[]): Promise<string> {
+  const { ok, said } = await runTool($, 'emotefont.py', ['add', ...args])
+  if (ok) {
+    await loadPack($)
+    $.ui.invalidate('ui.render')
+  }
+  return said
+}
+
+/** Zed can't draw the CBDT font: (re)build its COLR twin when Zed's font size, DPI or the pack changed. */
+async function zedSync($: EngineInterface, setup = false): Promise<string> {
+  const { said } = await runTool($, 'zedfont.py', setup ? ['--setup'] : ['--quiet'])
+  hasFont = undefined
+  $.ui.invalidate('ui.render')
+  return said
 }
 
 export const register: Register = on => {
@@ -165,9 +188,14 @@ export const register: Register = on => {
       if (failed !== undefined) $.ui.log(failed)
       else await loadPack($)
     }
-    if ((await $.env.get('TERM_PROGRAM')) === 'WezTerm') {
+    const term = await $.env.get('TERM_PROGRAM')
+    if (term === 'WezTerm') {
       const cfg = await wezConfig($)
       if (cfg !== undefined && !cfg.text.includes(MARK)) $.ui.log('one step left: run /emotes setup (adds two lines to your wezterm config)')
+    }
+    // Not awaited: a first build takes ~15s and the session shouldn't sit on it
+    if (term === 'zed' && pack !== undefined) {
+      void zedSync($).then(said => { if (said) $.ui.log(said) }).catch(() => {})
     }
     return next(e)
   })
@@ -206,7 +234,7 @@ export const register: Register = on => {
         hasFont = undefined
         await $.store.set('anyTerminal', rest[0] !== 'off')
         $.ui.invalidate('ui.render')
-        return { text: rest[0] !== 'off' ? 'Swapping emotes in every terminal. Yours needs the font as a fallback, or you get boxes.' : 'Back to wezterm only.' }
+        return { text: rest[0] !== 'off' ? 'Swapping emotes in every terminal. Yours needs the font as a fallback, or you get boxes.' : 'Back to wezterm and Zed only.' }
       case 'on':
       case 'off':
       case '':

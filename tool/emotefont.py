@@ -288,6 +288,8 @@ def write_outputs(data, registry, cfg):
     (data / "emotes.json").write_text(json.dumps({"cells": cells, "glyphs": glyphs}, ensure_ascii=False), encoding="utf-8")
     (data / "registry.json").write_text(json.dumps(registry, indent=0), encoding="utf-8")
     print(f"{len(glyphs)} emotes in the font ({out.stat().st_size / 1048576:.1f} MiB)")
+    import zedfont  # sibling file; Zed can't draw this font, so it gets its own rebuilt copy
+    zedfont.rebuild_if_configured()
 
 
 def upsert(registry, name, src, frame, override):
